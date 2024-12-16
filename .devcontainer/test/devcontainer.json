@@ -1,0 +1,32 @@
+{
+  "name": "Test Environment",
+  "dockerComposeFile": [
+    "../../.docker/test/docker-compose.yml"
+  ],
+  "service": "mysql-migration",
+  "workspaceFolder": "/workspaces/app",
+  "remoteEnv": {
+    "LOCAL_WORKSPACE_FOLDER_BASE_NAME": "${localWorkspaceFolderBasename}",
+    "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}",
+    "APP_ENV": "test"
+  },
+  // There may be cases where the file exists but is not executed or the path is not fully resolved.
+  "postCreateCommand": "ls -la ./.devcontainer/development/postCreateCommand.sh && chmod +x ./.devcontainer/development/postCreateCommand.sh && ./.devcontainer/development/postCreateCommand.sh",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+    "ghcr.io/devcontainers/features/node:1": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "cweijan.vscode-database-client2",
+        "ms-azuretools.vscode-docker",
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        "xdebug.php-debug",
+        "Orta.vscode-jest"
+      ]
+    }
+  },
+  "remoteUser": "root"
+}

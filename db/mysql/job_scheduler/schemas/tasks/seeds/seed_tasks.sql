@@ -1,0 +1,66 @@
+-- ====================================================================================================
+-- file: seed_tasks.sql
+-- purpose: Insert example data into the tasks table
+-- ====================================================================================================
+-- -- Example
+-- INSERT INTO
+--     tasks (
+--         task_type_id,
+--         task_status_type_id,
+--         task_description,
+--         task_scheduled_time,
+--         job_id,
+--         scheduled_interval,
+--         retry_count,
+--         error_message,
+--         execution_time,
+--         notification_preferences
+--     )
+-- VALUES (
+--         1, -- task_type_id (Data Extraction)
+--         1, -- task_status_type_id (Pending)
+--         'Extract data from Google Trends for US', -- task_description
+--         '2024-11-03 10:00:00', -- task_scheduled_time
+--         1, -- job_id (related job)
+--         NULL, -- scheduled_interval (no repetition)
+--         0, -- retry_count
+--         NULL, -- error_message
+--         NULL, -- execution_time
+--         '{"on_completion": true, "on_failure": true, "notification_channel": "email"}' -- notification_preferences
+--     ),
+--     (
+--         2, -- task_type_id (Data Transformation)
+--         1, -- task_status_type_id (Pending)
+--         'Transform extracted data into the required format', -- task_description
+--         '2024-11-03 11:00:00', -- task_scheduled_time
+--         1, -- job_id (related job)
+--         NULL, -- scheduled_interval (no repetition)
+--         0, -- retry_count
+--         NULL, -- error_message
+--         NULL, -- execution_time
+--         '{"on_completion": true, "on_failure": false, "notification_channel": "slack"}' -- notification_preferences
+--     ),
+--     (
+--         3, -- task_type_id (Data Loading)
+--         1, -- task_status_type_id (Pending)
+--         'Load transformed data into the data warehouse', -- task_description
+--         '2024-11-03 12:00:00', -- task_scheduled_time
+--         1, -- job_id (related job)
+--         NULL, -- scheduled_interval (no repetition)
+--         0, -- retry_count
+--         NULL, -- error_message
+--         NULL, -- execution_time
+--         '{"on_completion": false, "on_failure": true, "notification_channel": "sms"}' -- notification_preferences
+--     ),
+--     (
+--         4, -- task_type_id (Data Analysis)
+--         1, -- task_status_type_id (Pending)
+--         'Analyze the data to extract insights', -- task_description
+--         '2024-11-03 13:00:00', -- task_scheduled_time
+--         1, -- job_id (related job)
+--         NULL, -- scheduled_interval (no repetition)
+--         0, -- retry_count
+--         NULL, -- error_message
+--         NULL, -- execution_time
+--         '{"on_completion": true, "on_failure": true, "notification_channel": "email"}' -- notification_preferences
+--     );

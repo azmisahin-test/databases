@@ -1,0 +1,562 @@
+services:
+
+  mysql-migration:
+    build:
+      context: ../../
+      dockerfile: .docker/production/Dockerfile
+    env_file:
+      - .env.${APP_ENV}
+    volumes:
+      - backup:/backup
+      - logs:/logs
+    networks:
+      - network_shared
+    restart: on-failure
+    entrypoint: [ "/bin/sh", "-c", "scripts/entrypoint.sh" ]
+    depends_on:
+      mysql:
+        condition: service_healthy
+      # logstash:
+      #   condition: service_healthy
+      # logging:
+      #   driver: "gelf"
+      #   options:
+      #     gelf-address: "udp://logstash:5044"         
+
+      # Message Brokers
+  kafka:
+    image: apache/kafka-native:3.9.0
+    ports:
+      - '9092:9092'
+      - '19092:19092'
+    volumes:
+      - data_kafka:/var/lib/kafka/data
+    env_file:
+      - .env.${APP_ENV}
+    networks:
+      - network_shared
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: "4.0"
+          memory: "2g"
+        reservations:
+          cpus: "0.5"
+          memory: "1g"
+      restart_policy:
+        condition: on-failure
+    healthcheck:
+      test: [ "CMD", "sh", "-c", "nc -z localhost 9092" ]
+      interval: 30s # It may take some time for the group coordinator to become fully accessible.
+      retries: 5
+      timeout: 5s
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    env_file:
+      - .env.${APP_ENV}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - data_rabbitmq:/var/lib/rabbitmq
+    networks:
+      - network_shared
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: "4.0"
+          memory: "2g"
+        reservations:
+          cpus: "0.5"
+          memory: "1g"
+      restart_policy:
+        condition: on-failure
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:15672/api/overview" ]
+      interval: 10s
+      retries: 5
+      timeout: 10s
+
+  # # Message Brokers Management Tools
+  # kafdrop:
+  #   image: obsidiandynamics/kafdrop:4.0.2
+  #   env_file:
+  #     - .env.${APP_ENV}
+  #   ports:
+  #     - "9001:9000"
+  #   networks:
+  #     - network_shared
+  #   depends_on:
+  #     - kafka
+  #   environment:
+  #     - KAFKA_BROKERCONNECT=kafka:19092
+  #   deploy:
+  #     replicas: 1
+  #     resources:
+  #       limits:
+  #         cpus: "1.0"
+  #         memory: "2g"
+  #       reservations:
+  #         cpus: "0.5"
+  #         memory: "1g"
+  #     restart_policy:
+  #       condition: always
+
+  # Databases
+  mysql:
+    image: mysql:9.0
+    env_file:
+      - .env.${APP_ENV}
+    ports:
+      - "3306:3306"
+    volumes:
+      - /var/run/mysqld:/var/run/mysqld
+      - data_mysql:/var/lib/mysql
+    networks:
+      - network_shared
+    # performans
+    mem_limit: 2g
+    cpu_shares: 1024
+    # check
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 30s
+      retries: 5
+      timeout: 5s
+
+  mongo:
+    image: mongo:8.0.3
+    env_file:
+      - .env.${APP_ENV}
+    ports:
+      - "27017:27017"
+    volumes:
+      - data_mongodb:/data/db
+    networks:
+      - network_shared
+    restart: on-failure
+    command: mongod
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.runCommand({ ping: 1 })" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgresql:
+    image: postgres:13
+    env_file:
+      - .env.${APP_ENV:-production}
+    ports:
+      - "5432:5432"
+    volumes:
+      - data_postgresql:/var/lib/postgresql/data
+    networks:
+      - network_shared
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres_user" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  cassandra:
+    image: cassandra:5
+    env_file:
+      - .env.${APP_ENV}
+    ports:
+      - "9042:9042"
+    volumes:
+      - data_cassandra:/var/lib/cassandra
+    networks:
+      - network_shared
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:24
+    env_file:
+      - .env.${APP_ENV}
+    ports:
+      - "9000:9000"
+      - "8123:8123"
+    volumes:
+      - data_clickhouse:/var/lib/clickhouse
+    networks:
+      - network_shared
+
+  redis:
+    image: redis:7
+    env_file:
+      - .env.${APP_ENV}
+    ports:
+      - "6379:6379"
+    volumes:
+      - data_redis:/data
+    networks:
+      - network_shared
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: "4.0"
+          memory: "4g"
+        reservations:
+          cpus: "0.5"
+          memory: "1g"
+      restart_policy:
+        condition: on-failure
+
+  influxdb:
+    image: influxdb:2
+    env_file:
+      - .env.${APP_ENV}
+    ports:
+      - "8086:8086"
+    volumes:
+      - data_influxdb:/var/lib/influxdb
+    networks:
+      - network_shared
+
+  # neo4j:
+  #   image: neo4j:5
+  #   env_file:
+  #     - .env.${APP_ENV}
+  #   ports:
+  #     - "7474:7474"
+  #     - "7687:7687"
+  #   volumes:
+  #     - data_neo4j:/data
+  #   networks:
+  #     - network_shared
+
+  # couchdb:
+  #   image: couchdb:3
+  #   env_file:
+  #     - .env.${APP_ENV}
+  #   ports:
+  #     - "5984:5984"
+  #   volumes:
+  #     - data_couchdb:/opt/couchdb/data
+  #   networks:
+  #     - network_shared
+
+  # # Database Management Tools
+  # mysql_ui:
+  #   env_file:
+  #     - .env.${APP_ENV}
+  #   image: phpmyadmin:5
+  #   ports:
+  #     - "8081:80"
+  #   networks:
+  #     - network_shared
+  #   depends_on:
+  #     - mysql
+
+  # mongo_ui:
+  #   image: mongo-express:1.0.2
+  #   env_file:
+  #     - .env.${APP_ENV}
+  #   ports:
+  #     - "8083:8081"
+  #   networks:
+  #     - network_shared
+  #   depends_on:
+  #     - mongo
+
+  # postgresql_ui:
+  #   image: dpage/pgadmin4:8
+  #   env_file:
+  #     - .env.${APP_ENV}
+  #   ports:
+  #     - "8084:80"
+  #   volumes:
+  #     - ../../db/postgresql/service-ui/servers.json:/pgadmin4/servers.json
+  #   networks:
+  #     - network_shared
+  #   depends_on:
+  #     - postgresql
+
+  # dbeaver:
+  #   image: dbeaver/cloudbeaver:24
+  #   env_file:
+  #     - .env.${APP_ENV}
+  #   ports:
+  #     - "8085:8080" # DBeaver web interface
+  #   networks:
+  #     - network_shared
+  #   depends_on:
+  #     - mysql
+  #     - mongo
+  #     - postgresql
+  #     - cassandra
+  #     - redis
+  #     - influxdb
+  #     - elasticsearch
+  #   command: >
+  #     sh -c "while true; do sleep 30; done"
+
+  # Elasticsearch (ELK Stack)
+  elasticsearch:
+    image: elasticsearch:8.16.1
+    env_file:
+      - .env.${APP_ENV:-production}
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    networks:
+      - network_shared # - network_logging
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - data_elasticsearch:/usr/share/elasticsearch/data
+
+  # Kibana (ELK Stack)
+  kibana:
+    image: kibana:8.16.1
+    env_file:
+      - .env.${APP_ENV}
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601" # Kibana UI
+    networks:
+      - network_shared # - network_logging
+    depends_on:
+      - elasticsearch
+    # Logstash (ELK Stack)
+    # logstash:
+    #   image: docker.elastic.co/logstash/logstash:7.10.0
+    #   env_file:
+    #     - .env.${APP_ENV}
+    #   ports:
+    #     - "5044:5044/udp" # Logstash Beats input
+    #     - "9600:9600" # Logstash API port (health check için)
+    #   networks:
+    #     - network_shared #- network_logging
+    #   volumes:
+    #     - ../../monitoring/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+    #   depends_on:
+    #     elasticsearch:
+    #       condition: service_healthy
+    #   # Healthcheck for Logstash
+    #   healthcheck:
+    #     test: [ "CMD", "curl", "-f", "http://localhost:9600" ]
+    #     interval: 10s
+    #     retries: 5
+    #     start_period: 30s
+    #     timeout: 10s
+
+    # Monitoring Services
+    # Prometheus
+  prometheus:
+    image: prom/prometheus:v2.53.3
+    env_file:
+      - .env.${APP_ENV}
+    ports:
+      - "9090:9090"
+    volumes:
+      - ../../monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - network_shared # - network_monitoring
+
+  # Open Telemetry
+  otlp:
+    image: otel/opentelemetry-collector:latest
+    env_file:
+      - .env.${APP_ENV}
+    ports:
+      - "4317:4317"
+      - "55680:55680"
+    networks:
+      - network_shared # - network_logging      
+
+  # Tracking Services
+  zipkin:
+    image: openzipkin/zipkin
+    env_file:
+      - .env.${APP_ENV}
+    ports:
+      - "9411:9411" # Zipkin UI ve API
+    networks:
+      - network_shared
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: "4.0"
+          memory: "4g"
+        reservations:
+          cpus: "0.5"
+          memory: "1g"
+      restart_policy:
+        condition: on-failure
+
+  # jaeger
+  jaeger:
+    # image: jaegertracing/jaeger:2.0.0
+    image: jaegertracing/all-in-one:latest
+    env_file:
+      - .env.${APP_ENV}
+    environment:
+      - COLLECTOR_ZIPKIN_HTTP_PORT=9411 # Zipkin Compatibility port (9412)
+    #   - JAEGER_AGENT_PORT=5778 # Jaeger agent port
+    #   - JAEGER_AGENT_HOST=localhost # Jaeger agent host
+    #   - JAEGER_SERVICE_NAME=jaeger # Jaeger service name
+    #   - JAEGER_SAMPLER_TYPE=const
+    #   - JAEGER_SAMPLER_PARAM=1
+    #   - JAEGER_REPORTER_LOG_SPANS=true
+    #   - COLLECTOR_ZIPKIN_HTTP_PORT=9411
+    ports:
+      # - "4317:4317" # OTLP gRPC
+      - "4318:4318" # OTLP HTTP
+      - "5775:5775/udp"
+      - "5778:5778" # Agent port
+      - "9412:9411" # Jaeger Zipkin Compatibility (9412)
+      - "6831:6831/udp"
+      - "6832:6832/udp"
+      - "14250:14250" # gRPC
+      - "14267:14267" #
+      - "14268:14268" # HTTP (traces)
+      - "16686:16686" # Jaeger UI
+      - "55000:55000" #
+    networks:
+      - network_shared
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: "4.0"
+          memory: "4g"
+        reservations:
+          cpus: "0.5"
+          memory: "1g"
+      restart_policy:
+        condition: on-failure
+
+  # # All Database Exporter
+  # mysql-exporter:
+  #   image: prom/mysqld-exporter:latest
+  #   env_file:
+  #     - .env.${APP_ENV}
+  #   ports:
+  #     - "9104:9104"
+  #   depends_on:
+  #     - mysql
+
+  # mongo-exporter:
+  #   image: bitnami/mongodb-exporter:latest
+  #   env_file:
+  #     - .env.${APP_ENV}
+  #   ports:
+  #     - "9216:9216"
+  #   depends_on:
+  #     - mongo
+
+  # postgres-exporter:
+  #   image: wrouesnel/postgres_exporter:latest
+  #   env_file:
+  #     - .env.${APP_ENV}
+  #   ports:
+  #     - "9187:9187"
+  #   depends_on:
+  #     - postgresql
+
+  # kafka-exporter:
+  #   image: bitnami/kafka-exporter:latest
+  #   env_file:
+  #     - .env.${APP_ENV}
+  #   ports:
+  #     - "9308:9308"
+  #   depends_on:
+  #     - kafka
+
+  # redis-exporter:
+  #   image: oliver006/redis_exporter:latest
+  #   env_file:
+  #     - .env.${APP_ENV}
+  #   ports:
+  #     - "9121:9121"
+  #   depends_on:
+  #     - redis
+
+  # Grafana
+  grafana:
+    image: grafana/grafana:11.3.0
+    env_file:
+      - .env.${APP_ENV}
+    volumes:
+      - ../../monitoring/grafana/grafana.ini:/etc/grafana/grafana.ini
+    ports:
+      - "3000:3000"
+    networks:
+      - network_shared # - network_monitoring
+    depends_on:
+      - prometheus
+
+  # cAdvisor
+  cadvisor:
+    image: google/cadvisor:latest
+    env_file:
+      - .env.${APP_ENV}
+    ports:
+      - "8080:8080" # cAdvisor UI
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - network_shared # - network_monitoring
+  # Graylog
+  # graylog:
+  #   image: graylog/graylog:6.1
+  #   env_file:
+  #     - .env.${APP_ENV}
+  #   ports:
+  #     - "9000:9000" # Graylog UI
+  #     - "12201:12201/udp" # GELF UDP input
+  #   networks:
+  #     - network_shared # - network_monitoring or network_logging 
+
+  # # Web Services
+  # web:
+  #   image: nginx:1.27
+  #   env_file:
+  #     - .env.${APP_ENV}
+  #   ports:
+  #     - "80:80"
+  #   volumes:
+  #     - ../../web/nginx/nginx.conf:/etc/nginx/nginx.conf
+  #   networks:
+  #     - network_shared
+
+volumes:
+  backup:
+  logs:
+  data_mysql:
+  data_kafka:
+  data_rabbitmq: # data_mysql:
+  data_mongodb:
+  data_postgresql:
+  data_cassandra:
+  data_clickhouse:
+  data_redis:
+  data_influxdb:
+    # data_neo4j:
+    # data_couchdb:
+  data_elasticsearch:
+
+
+networks:
+  network_shared:
+    # docker network create network_shared
+    external: true # Ensure this network exists or create it manually
+  network_monitoring:
+    driver: bridge
+  network_logging:
+    driver: bridge

@@ -1,0 +1,12 @@
+[mysqld]
+socket=/var/run/mysqld/mysqld.sock
+character-set-server=utf8mb4
+collation-server=utf8mb4_unicode_ci
+
+[client]
+socket=/var/run/mysqld/mysqld.sock 
+default-character-set=utf8mb4
+host=mysql
+port=3306
+user=root
+password=root_password

@@ -1,0 +1,54 @@
+-- ====================================================================================================
+-- file: seed_jobs.sql
+-- purpose: Insert initial data into the jobs table
+-- ====================================================================================================
+-- -- Example
+-- INSERT INTO
+--     jobs (
+--         job_type_id,
+--         job_status_type_id,
+--         job_priority_level_id,
+--         job_name,
+--         job_description,
+--         job_metadata,
+--         data_source,
+--         scheduled_time,
+--         processing_started_at,
+--         processing_completed_at
+--     )
+-- VALUES (
+--         1, -- İş tipi ID (örneğin "data extraction" için)
+--         1, -- İş durumu ID (örneğin "Pending" durumu)
+--         2, -- Öncelik seviyesi (yüksek öncelik için daha düşük numara)
+--         'Google Trends US Data Extraction', -- İşin adı
+--         'Extracts trending data from Google Trends for the US region', -- İş açıklaması
+--         '{"fetch_type": "RSS", "region": "US"}', -- İşe özel ek bilgiler
+--         '{ "type": "service", "service": { "service_id": 1 } }', -- Veri kaynağı bilgisi (örneğin service_id 1)
+--         '2024-11-01 08:00:00', -- Planlanan işleme zamanı
+--         '2024-11-01 08:05:00', -- İşleme başlama zamanı
+--         '2024-11-01 08:10:00' -- İşleme bitiş zamanı
+--     ),
+--     (
+--         2, -- İş tipi ID (örneğin "data transformation" için)
+--         2, -- İş durumu ID (örneğin "In Progress" durumu)
+--         1, -- En yüksek öncelik
+--         'Weather Data Processing for San Francisco', -- İşin adı
+--         'Transforms and analyzes temperature data from the weather API', -- İş açıklaması
+--         '{"region": "San Francisco", "metric": "temperature"}', -- İşe özel metadata
+--         '{ "type": "service", "service": { "service_id": 3 } }', -- Veri kaynağı
+--         '2024-11-01 10:00:00', -- Planlanan işleme zamanı
+--         '2024-11-01 10:10:00', -- İşleme başlama zamanı
+--         NULL -- İşleme henüz tamamlanmamış
+--     ),
+--     (
+--         3, -- İş tipi ID (örneğin "data extraction" için)
+--         3, -- İş durumu ID (örneğin "Completed" durumu)
+--         3, -- Düşük öncelik seviyesi
+--         'Google Trends TR Data Extraction', -- İşin adı
+--         'Extracts trending data from Google Trends for the Turkey region', -- İş açıklaması
+--         '{"fetch_type": "RSS", "region": "TR"}', -- İş metadata bilgisi
+--         '{ "type": "service", "service": { "service_id": 2 } }', -- Veri kaynağı
+--         '2024-11-01 09:00:00', -- Planlanan işleme zamanı
+--         '2024-11-01 09:05:00', -- İşleme başlama zamanı
+--         '2024-11-01 09:15:00' -- İşleme bitiş zamanı
+--     );

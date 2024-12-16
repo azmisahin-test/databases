@@ -1,0 +1,34 @@
+-- ====================================================================================================
+-- file: seed_data_warehouses.sql
+-- purpose: Insert initial data into the data_warehouses table
+-- ====================================================================================================
+-- -- Example
+-- INSERT INTO
+--     data_warehouses (
+--         data_schema_id,
+--         data_information_version,
+--         data_information,
+--         collection_date,
+--         data_source
+--     )
+-- VALUES (
+--         1, -- Data schema ID (örneğin sıcaklık verisi için JSON formatında bir şema)
+--         1, -- Versiyon numarası
+--         '{"city": "San Francisco", "temperature": 15, "timestamp": "2024-10-31T12:00:00Z"}',
+--         '2024-10-31 12:00:00',
+--         '{ "type": "service", "service": { "service_id": 1 } }' -- Veri kaynağı bilgisi
+--     ),
+--     (
+--         2, -- Farklı bir şema ID'si (örneğin trend verisi için)
+--         1,
+--         '{"country": "US", "trend": "technology", "interest": 85}',
+--         '2024-10-31 14:30:00',
+--         '{ "type": "service", "service": { "service_id": 2 } }'
+--     ),
+--     (
+--         3, -- Başka bir veri türü için şema ID'si
+--         2, -- Versiyon 2 (güncellenmiş veri yapısı veya içerik)
+--         '{"country": "TR", "trend": "sports", "interest": 75}',
+--         '2024-10-31 14:30:00',
+--         '{ "type": "service", "service": { "service_id": 3 } }'
+--     );

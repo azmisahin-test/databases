@@ -1,0 +1,31 @@
+{
+  "database": "job_scheduler",
+  "config_file": {
+    "mysql": "/db/mysql/job_scheduler/config/mysql.cnf"
+  },
+  "migration_type": "mysql",
+  "migration_file_format": "sql",
+  "migration_table": "_migration_history",
+  "migrations_directory": "/db/mysql/job_scheduler/migrations/versions",
+  "rollback": {
+    "enabled": true,
+    "rollback_directory": "/db/mysql/job_scheduler/migrations/rollback"
+  },
+  "error_handling": {
+    "log_errors": true,
+    "error_log_file": "/logs/db/mysql/job_scheduler/migration.log"
+  },
+  "backup": {
+    "enabled": true,
+    "backup_directory": "/backup/db/mysql/job_scheduler"
+  },
+  "migration_details": {
+    "description": true,
+    "applied_by": true
+  },
+  "versioning": {
+    "enabled": true,
+    "current_version": "",
+    "applied_versions": []
+  }
+}

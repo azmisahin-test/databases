@@ -1,0 +1,36 @@
+-- ====================================================================================================
+-- file: seed_data_lakes.sql
+-- purpose: Insert initial data into the data_lakes table
+-- ====================================================================================================
+-- -- Example
+-- INSERT INTO
+--     data_lakes (
+--         data_lake_content,
+--         data_format_id,
+--         collection_date
+--     )
+-- VALUES (
+--         '{"city": "San Francisco", "temperature": 15, "timestamp": "2024-10-31T12:00:00Z"}',
+--         1, -- JSON format ID
+--         '2024-10-31 12:00:00'
+--     ),
+--     (
+--         '{"city": "New York", "temperature": 10, "timestamp": "2024-10-31T12:00:00Z"}',
+--         1, -- JSON format ID
+--         '2024-10-31 12:00:00'
+--     ),
+--     (
+--         '{"city": "Los Angeles", "temperature": 20, "timestamp": "2024-10-31T12:00:00Z"}',
+--         1, -- JSON format ID
+--         '2024-10-31 12:00:00'
+--     ),
+--     (
+--         '{"country": "US", "trend": "technology", "interest": 85}',
+--         1, -- JSON format ID
+--         '2024-10-31 14:30:00'
+--     ),
+--     (
+--         '{"country": "TR", "trend": "sports", "interest": 75}',
+--         1, -- JSON format ID
+--         '2024-10-31 14:30:00'
+--     );
